@@ -1,0 +1,181 @@
+import pandas as pd
+import numpy as np
+from scipy.spatial import distance
+
+# Sample data for sponsors and children
+sponsors_data = [
+    {'sponsor_id': 1, 'name': 'Sponsor1', 'child_age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 2, 'name': 'Sponsor2', 'child_age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 3, 'name': 'Sponsor3', 'child_age': 6, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 51.5074, 'longitude': -0.1278}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 4, 'name': 'Sponsor4', 'child_age': 8, 'dietary_restrictions': 'None', 'school_location': {'latitude': 35.682839, 'longitude': 139.759455}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 5, 'name': 'Sponsor5', 'child_age': 5, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 52.5200, 'longitude': 13.4050}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 6, 'name': 'Sponsor6', 'child_age': 10, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 48.8566, 'longitude': 2.3522}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 7, 'name': 'Sponsor7', 'child_age': 7, 'dietary_restrictions': 'Kosher', 'school_location': {'latitude': 55.7558, 'longitude': 37.6176}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 8, 'name': 'Sponsor8', 'child_age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 19.4326, 'longitude': -99.1332}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 9, 'name': 'Sponsor9', 'child_age': 6, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.4168, 'longitude': -3.7038}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 10, 'name': 'Sponsor10', 'child_age': 8, 'dietary_restrictions': 'None', 'school_location': {'latitude': 41.9028, 'longitude': 12.4964}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 11, 'name': 'Sponsor11', 'child_age': 5, 'dietary_restrictions': 'Vegan', 'school_location': {'latitude': 52.3667, 'longitude': 4.8945}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 12, 'name': 'Sponsor12', 'child_age': 10, 'dietary_restrictions': 'None', 'school_location': {'latitude': 41.3851, 'longitude': 2.1734}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 13, 'name': 'Sponsor13', 'child_age': 7, 'dietary_restrictions': 'Gluten-Free', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 14, 'name': 'Sponsor14', 'child_age': 9, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 52.5200, 'longitude': 13.4050}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 15, 'name': 'Sponsor15', 'child_age': 6, 'dietary_restrictions': 'None', 'school_location': {'latitude': 51.5074, 'longitude': -0.1278}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 16, 'name': 'Sponsor16', 'child_age': 8, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 48.8566, 'longitude': 2.3522}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 17, 'name': 'Sponsor17', 'child_age': 5, 'dietary_restrictions': 'None', 'school_location': {'latitude': 55.7558, 'longitude': 37.6176}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 18, 'name': 'Sponsor18', 'child_age': 10, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 19, 'name': 'Sponsor19', 'child_age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 52.5200, 'longitude': 13.4050}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 20, 'name': 'Sponsor20', 'child_age': 9, 'dietary_restrictions': 'Kosher', 'school_location': {'latitude': 41.9028, 'longitude': 12.4964}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 21, 'name': 'Sponsor21', 'child_age': 6, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 48.8566, 'longitude': 2.3522}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 22, 'name': 'Sponsor22', 'child_age': 8, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 40.4168, 'longitude': -3.7038}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 23, 'name': 'Sponsor23', 'child_age': 5, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 24, 'name': 'Sponsor24', 'child_age': 10, 'dietary_restrictions': 'None', 'school_location': {'latitude': 19.4326, 'longitude': -99.1332}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 25, 'name': 'Sponsor25', 'child_age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 55.7558, 'longitude': 37.6176}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 26, 'name': 'Sponsor26', 'child_age': 9, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 27, 'name': 'Sponsor27', 'child_age': 6, 'dietary_restrictions': 'Gluten-Free', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 28, 'name': 'Sponsor28', 'child_age': 8, 'dietary_restrictions': 'None', 'school_location': {'latitude': 51.5074, 'longitude': -0.1278}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 29, 'name': 'Sponsor29', 'child_age': 5, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 35.682839, 'longitude': 139.759455}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 30, 'name': 'Sponsor30', 'child_age': 10, 'dietary_restrictions': 'None', 'school_location': {'latitude': 52.5200, 'longitude': 13.4050}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 31, 'name': 'Sponsor31', 'child_age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 19.4326, 'longitude': -99.1332}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 32, 'name': 'Sponsor32', 'child_age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 41.9028, 'longitude': 12.4964}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 33, 'name': 'Sponsor33', 'child_age': 6, 'dietary_restrictions': 'None', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 34, 'name': 'Sponsor34', 'child_age': 8, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 55.7558, 'longitude': 37.6176}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 35, 'name': 'Sponsor35', 'child_age': 5, 'dietary_restrictions': 'Kosher', 'school_location': {'latitude': 40.4168, 'longitude': -3.7038}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 36, 'name': 'Sponsor36', 'child_age': 10, 'dietary_restrictions': 'None', 'school_location': {'latitude': 41.3851, 'longitude': 2.1734}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 37, 'name': 'Sponsor37', 'child_age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 48.8566, 'longitude': 2.3522}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 38, 'name': 'Sponsor38', 'child_age': 9, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 52.5200, 'longitude': 13.4050}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 39, 'name': 'Sponsor39', 'child_age': 6, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 51.5074, 'longitude': -0.1278}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 40, 'name': 'Sponsor40', 'child_age': 8, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 41, 'name': 'Sponsor41', 'child_age': 5, 'dietary_restrictions': 'None', 'school_location': {'latitude': 35.682839, 'longitude': 139.759455}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 42, 'name': 'Sponsor42', 'child_age': 10, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 52.5200, 'longitude': 13.4050}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 43, 'name': 'Sponsor43', 'child_age': 7, 'dietary_restrictions': 'Kosher', 'school_location': {'latitude': 51.5074, 'longitude': -0.1278}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 44, 'name': 'Sponsor44', 'child_age': 9, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 19.4326, 'longitude': -99.1332}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 45, 'name': 'Sponsor45', 'child_age': 6, 'dietary_restrictions': 'None', 'school_location': {'latitude': 41.9028, 'longitude': 12.4964}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 46, 'name': 'Sponsor46', 'child_age': 8, 'dietary_restrictions': 'Vegan', 'school_location': {'latitude': 52.3667, 'longitude': 4.8945}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 47, 'name': 'Sponsor47', 'child_age': 5, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.4168, 'longitude': -3.7038}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 48, 'name': 'Sponsor48', 'child_age': 10, 'dietary_restrictions': 'None', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 49, 'name': 'Sponsor49', 'child_age': 7, 'dietary_restrictions': 'Gluten-Free', 'school_location': {'latitude': 48.8566, 'longitude': 2.3522}, 'email': 'sponsor@example.com',},
+    {'sponsor_id': 50, 'name': 'Sponsor50', 'child_age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 52.5200, 'longitude': 13.4050}, 'email': 'sponsor@example.com',},
+]
+
+
+children_data = [
+    {'child_id': 1, 'name': 'Child1', 'age': 8, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 2, 'name': 'Child2', 'age': 6, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 3, 'name': 'Child3', 'age': 10, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 4, 'name': 'Child4', 'age': 5, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 5, 'name': 'Child5', 'age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 6, 'name': 'Child6', 'age': 9, 'dietary_restrictions': 'None', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 7, 'name': 'Child7', 'age': 8, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 9, 'name': 'Child9', 'age': 10, 'dietary_restrictions': 'None', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 10, 'name': 'Child10', 'age': 5, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 11, 'name': 'Child11', 'age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 12, 'name': 'Child12', 'age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 13, 'name': 'Child13', 'age': 8, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 14, 'name': 'Child14', 'age': 6, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 15, 'name': 'Child15', 'age': 10, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 16, 'name': 'Child16', 'age': 5, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 17, 'name': 'Child17', 'age': 7, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 18, 'name': 'Child18', 'age': 9, 'dietary_restrictions': 'None', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 19, 'name': 'Child19', 'age': 8, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 20, 'name': 'Child20', 'age': 6, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 21, 'name': 'Child21', 'age': 10, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 22, 'name': 'Child22', 'age': 5, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 23, 'name': 'Child23', 'age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 24, 'name': 'Child24', 'age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 25, 'name': 'Child25', 'age': 8, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 26, 'name': 'Child26', 'age': 6, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 27, 'name': 'Child27', 'age': 10, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 28, 'name': 'Child28', 'age': 5, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 29, 'name': 'Child29', 'age': 7, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 30, 'name': 'Child30', 'age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 31, 'name': 'Child31', 'age': 8, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 32, 'name': 'Child32', 'age': 6, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 33, 'name': 'Child33', 'age': 10, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 34, 'name': 'Child34', 'age': 5, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 35, 'name': 'Child35', 'age': 7, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 36, 'name': 'Child36', 'age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 37, 'name': 'Child37', 'age': 8, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 38, 'name': 'Child38', 'age': 6, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 39, 'name': 'Child39', 'age': 10, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 40, 'name': 'Child40', 'age': 5, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 41, 'name': 'Child41', 'age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 42, 'name': 'Child42', 'age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 43, 'name': 'Child43', 'age': 8, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 44, 'name': 'Child44', 'age': 6, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 45, 'name': 'Child45', 'age': 10, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 46, 'name': 'Child46', 'age': 5, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 47, 'name': 'Child47', 'age': 7, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 48, 'name': 'Child48', 'age': 9, 'dietary_restrictions': 'Vegetarian', 'school_location': {'latitude': 34.0522, 'longitude': -118.2437}, 'email': 'recipient@example.com',},
+    {'child_id': 49, 'name': 'Child49', 'age': 8, 'dietary_restrictions': 'Halal', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+    {'child_id': 50, 'name': 'Child50', 'age': 6, 'dietary_restrictions': 'None', 'school_location': {'latitude': 40.7128, 'longitude': -74.0060}, 'email': 'recipient@example.com',},
+]
+
+# Convert data to DataFrames
+sponsors_df = pd.DataFrame(sponsors_data)
+children_df = pd.DataFrame(children_data)
+
+# Function to calculate the age difference score
+def calculate_age_score(donor_age, recipient_age):
+    age_difference = abs(donor_age - recipient_age)
+    return age_difference
+
+# Function to calculate the distance score
+def calculate_distance_score(donor_location, recipient_location):
+    donor_coords = np.array([donor_location['latitude'], donor_location['longitude']])
+    recipient_coords = np.array([recipient_location['latitude'], recipient_location['longitude']])
+    # Use the Euclidean distance (you can use more sophisticated distance metrics)
+    dist = distance.euclidean(donor_coords, recipient_coords)
+    print(dist)
+    return 10 / (1 + dist)  # Adjust the scoring function as needed
+
+# Function to create matches based on scores
+def create_matches(sponsors_df, children_df):
+    matched_results = []
+    unmatched_children = []
+
+    for recipient_index, recipient_row in children_df.iterrows():
+        recipient_dietary_restrictions = recipient_row['dietary_restrictions']
+        potential_sponsors = pd.DataFrame()
+
+        if recipient_dietary_restrictions != 'None':
+            # Match based on dietary restrictions
+            potential_sponsors = sponsors_df[sponsors_df['dietary_restrictions'] == recipient_dietary_restrictions]
+
+        if not potential_sponsors.empty:
+            # Calculate age and distance scores
+            potential_sponsors['age_score'] = potential_sponsors.apply(lambda row: calculate_age_score(row['child_age'], recipient_row['age']), axis=1)
+            potential_sponsors['distance_score'] = potential_sponsors.apply(lambda row: calculate_distance_score(row['school_location'], recipient_row['school_location']), axis=1)
+
+            # Calculate total score as the sum of age and distance scores
+            potential_sponsors['total_score'] = potential_sponsors['age_score'] + potential_sponsors['distance_score']
+
+            # Find the best match based on the lowest total score
+            best_match = potential_sponsors.loc[potential_sponsors['total_score'].idxmin()]
+
+            matched_results.append({
+                'Recipient Name': recipient_row['name'],
+                'Recipient Email': recipient_row['email'],
+                'Sponsor Name': best_match['name'],
+                'Sponsor Email': best_match['email'],
+                'Recipient Child Dietary Restrictions': recipient_row['dietary_restrictions'],
+                'Age Score': best_match['age_score'],
+                'Distance Score': best_match['distance_score'],
+                'Total Score': best_match['total_score']
+            })
+        else:
+            # Handle cases where no dietary restriction match is found
+            unmatched_children.append(recipient_row['name'])
+
+    return matched_results, unmatched_children
+
+# Perform the matching
+matched_results, unmatched_children = create_matches(sponsors_df, children_df)
+
+# Create a DataFrame for the matched results
+matched_results_df = pd.DataFrame(matched_results)
+
+# Save the matched results to a CSV file
+matched_results_df.to_csv('matching_results.csv', index=False)
+
+# Save the unmatched children to a separate CSV file for monetary contributions
+unmatched_children_df = pd.DataFrame({'Unmatched Children': unmatched_children})
+unmatched_children_df.to_csv('unmatched_children.csv', index=False)

@@ -1,0 +1,67 @@
+import smtplib
+import csv
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# Email configuration
+sender_email = "your_email@example.com"
+password = "your_email_password"
+smtp_server = "smtp.example.com"  # Update this with the SMTP server for your email provider
+smtp_port = 587  # Update this with the appropriate SMTP port for your email provider
+
+# Read the list of recipient emails and their associated data from a CSV file
+recipient_data = []
+with open('recipient_data.csv', 'r') as csv_file:
+    csv_reader = csv.DictReader(csv_file)
+    for row in csv_reader:
+        recipient_data.append(row)
+
+# Email content
+subject = "Child Sponsorship Match!"
+
+# Send emails to each recipient
+for data in recipient_data:
+    try:
+        recipient_email = data['Recipient Email']
+        donor_name = data['Donor Name']
+        child_id = data['Child ID']
+        additional_info = data['Additional Information']
+        age_range = data['Age Range']
+        dietary_restrictions = data['Dietary Restrictions']
+        allergies = data['Allergies']
+
+        message = f"""Dear {donor_name},
+
+Thank you for signing up to become a Sponsor for Food4Kids! We are grateful for your contributions to our community, and want to confirm that we have matched you with a hungry child in your community. 
+
+Your matched child is {child_id}! This child's teacher describes them as {additional_info}. Because of you, we are able to care for {child_id} and provide them with the nutritious meals they need. Here is some more information regarding your matched child:
+
+This child is between the ages {age_range}.
+This child eats {dietary_restrictions} food. 
+This child has the following food allergies: {allergies}. 
+
+Thank you for participating in part of the Meal MatchMakers project at Food4Kids Waterloo."""
+
+        # Create a connection to the SMTP server
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+
+        # Login to your email account
+        server.login(sender_email, password)
+
+        # Create the email message
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = recipient_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(message, 'plain'))
+
+        # Send the email
+        server.sendmail(sender_email, recipient_email, msg.as_string())
+
+        # Close the SMTP server connection
+        server.quit()
+
+        print(f"Email sent to {recipient_email}")
+    except Exception as e:
+        print(f"Failed to send email to {recipient_email}. Error: {str(e)}")
